@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Output and Captures
+*-capture.json
+*-viewport.jpeg
+*-fullpage.jpeg
+*.log

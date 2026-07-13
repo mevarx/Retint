@@ -1,0 +1,336 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Taste Profile",
+  "description": "Design taste profile produced by /extract, consumed by /graft. Every value is concrete (px, hex, ratio) — no adjectives allowed.",
+  "type": "object",
+  "required": ["metadata", "designMap", "tasteDNA"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["url", "domain", "capturedAt", "version"],
+      "properties": {
+        "url": { "type": "string", "description": "Primary URL analyzed" },
+        "compareUrl": { "type": "string", "description": "Second URL if comparative mode was used" },
+        "domain": { "type": "string", "description": "Hostname with www. stripped, used for file naming" },
+        "capturedAt": { "type": "string", "format": "date-time" },
+        "crawlScope": { "type": "string", "enum": ["single", "multi"], "default": "single" },
+        "pagesAnalyzed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "All URLs visited during capture (primary + crawled pages)"
+        },
+        "version": { "type": "string", "description": "Schema version, e.g. 1.0.0" },
+        "captureMethod": { "type": "string", "enum": ["mcp", "fallback"], "description": "Whether Playwright MCP or standalone script was used" },
+        "hydrationWarning": { "type": "boolean", "description": "True if page was still skeleton-looking after hydration wait" }
+      }
+    },
+    "designMap": {
+      "type": "object",
+      "description": "Concrete design tokens — every value is a measurement, never an adjective.",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "properties": {
+            "pageBackground": { "type": "string", "description": "Hex value of the page/body background" },
+            "backgrounds": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "count": { "type": "integer" },
+                  "areaPct": { "type": "number", "description": "Approximate % of visible surface area" },
+                  "role": { "type": "string", "description": "e.g. 'section-bg', 'card-bg', 'nav-bg'" },
+                  "signal": { "type": "string", "enum": ["system", "local"], "description": "system = appeared on 2+ pages, local = single page only" }
+                }
+              }
+            },
+            "text": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "count": { "type": "integer" },
+                  "role": { "type": "string", "description": "e.g. 'heading', 'body', 'caption', 'muted'" }
+                }
+              }
+            },
+            "accents": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "count": { "type": "integer" },
+                  "usage": { "type": "string", "description": "e.g. 'CTA buttons', 'links', 'badges'" }
+                }
+              }
+            },
+            "borders": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "count": { "type": "integer" },
+                  "usage": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "typography": {
+          "type": "object",
+          "properties": {
+            "families": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string", "description": "Font family name" },
+                  "role": { "type": "string", "description": "e.g. 'display', 'body', 'mono', 'ui'" },
+                  "count": { "type": "integer" }
+                }
+              }
+            },
+            "sizeScale": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string", "description": "e.g. '48px', '2rem'" },
+                  "count": { "type": "integer" },
+                  "usage": { "type": "string" }
+                }
+              },
+              "description": "Ordered largest to smallest"
+            },
+            "weights": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string", "description": "e.g. '400', '600', '700'" },
+                  "count": { "type": "integer" },
+                  "usage": { "type": "string" }
+                }
+              }
+            },
+            "lineHeights": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "context": { "type": "string" }
+                }
+              }
+            },
+            "letterSpacing": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "context": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "spacing": {
+          "type": "object",
+          "properties": {
+            "unit": { "type": "string", "description": "Base spacing unit if detectable, e.g. '8px', '4px'" },
+            "scale": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "count": { "type": "integer" },
+                  "context": { "type": "string" }
+                }
+              },
+              "description": "All distinct spacing values found, ordered by frequency"
+            },
+            "sectionGaps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "between": { "type": "string", "description": "e.g. 'hero → features', 'features → testimonials'" },
+                  "gap": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "radii": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": { "type": "string" },
+              "count": { "type": "integer" },
+              "usage": { "type": "string", "description": "e.g. 'buttons', 'cards', 'inputs', 'avatars'" }
+            }
+          }
+        },
+        "shadows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": { "type": "string", "description": "Full CSS box-shadow value" },
+              "count": { "type": "integer" },
+              "perceivable": { "type": "boolean", "description": "Whether the shadow is visually noticeable in the screenshot" },
+              "usage": { "type": "string" }
+            }
+          }
+        },
+        "borders": {
+          "type": "object",
+          "properties": {
+            "dominant": { "type": "string", "description": "Most common border style, e.g. '1px solid rgba(0,0,0,0.1)'" },
+            "usage": { "type": "string", "description": "e.g. 'card edges, section dividers' or 'none — shadows used instead'" },
+            "count": { "type": "integer" }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "properties": {
+            "containerMaxWidth": { "type": "string" },
+            "containerPadding": { "type": "string" },
+            "columns": { "type": "integer" },
+            "gap": { "type": "string" },
+            "template": { "type": "string", "description": "CSS grid-template-columns value if grid detected" }
+          }
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "description": "e.g. 'hero', 'feature', 'thumbnail', 'avatar'" },
+              "aspectRatio": { "type": "string" },
+              "treatment": { "type": "string", "description": "e.g. 'rounded corners 12px', 'full-bleed', 'drop shadow'" }
+            }
+          }
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "variant": { "type": "string", "description": "e.g. 'primary', 'secondary', 'ghost'" },
+              "fontSize": { "type": "string" },
+              "fontWeight": { "type": "string" },
+              "letterSpacing": { "type": "string" },
+              "textTransform": { "type": "string" },
+              "borderRadius": { "type": "string" },
+              "padding": { "type": "string" },
+              "background": { "type": "string" },
+              "border": { "type": "string" }
+            }
+          }
+        },
+        "motion": {
+          "type": "object",
+          "description": "Transition and animation properties captured from interactive elements.",
+          "properties": {
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "property": { "type": "string", "description": "CSS property being transitioned" },
+                  "duration": { "type": "string", "description": "e.g. '200ms', '0.3s'" },
+                  "easing": { "type": "string", "description": "e.g. 'ease-in-out', 'cubic-bezier(0.4, 0, 0.2, 1)'" },
+                  "element": { "type": "string", "description": "What element type uses this transition" }
+                }
+              }
+            },
+            "hoverDeltas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "element": { "type": "string", "description": "e.g. 'nav-link', 'CTA-button'" },
+                  "property": { "type": "string" },
+                  "from": { "type": "string" },
+                  "to": { "type": "string" }
+                }
+              },
+              "description": "Before/after values captured by hovering over nav links and buttons"
+            },
+            "reducedMotion": { "type": "boolean", "description": "Whether a prefers-reduced-motion media query was detected" },
+            "dominantDuration": { "type": "string", "description": "Most frequently used transition duration" },
+            "dominantEasing": { "type": "string", "description": "Most frequently used easing curve" }
+          }
+        }
+      }
+    },
+    "tasteDNA": {
+      "type": "array",
+      "description": "3–4 taste principles, each evidence-backed and specific to this site.",
+      "items": {
+        "type": "object",
+        "required": ["trigger", "decision", "reason", "evidence", "tradeoff", "confidence"],
+        "properties": {
+          "trigger": { "type": "string", "description": "The design decision point, e.g. 'deciding on an accent color'" },
+          "decision": { "type": "string", "description": "What was actually chosen" },
+          "reason": { "type": "string", "description": "Why, in terms of what it signals or protects" },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Specific cited data supporting this reading — px, hex, ratio values"
+          },
+          "tradeoff": { "type": "string", "description": "What was given up by choosing this. At least one principle must be a Restraint trade-off." },
+          "confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "high = system signal on 2+ pages + visible + DOM-measured. medium = single page or not clearly DOM-measurable. low = inferred/interpretive."
+          }
+        }
+      },
+      "minItems": 3,
+      "maxItems": 4
+    },
+    "delta": {
+      "type": "object",
+      "description": "Comparative analysis — only present when two URLs were analyzed.",
+      "properties": {
+        "siteA": { "type": "string", "description": "Domain of first URL" },
+        "siteB": { "type": "string", "description": "Domain of second URL" },
+        "agreements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "axis": { "type": "string", "description": "e.g. 'depth signal', 'spacing rhythm'" },
+              "sharedApproach": { "type": "string" },
+              "evidence": { "type": "array", "items": { "type": "string" } },
+              "interpretation": { "type": "string", "description": "Why this is category-standard, not distinctive" }
+            }
+          }
+        },
+        "divergences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "axis": { "type": "string" },
+              "siteAApproach": { "type": "string" },
+              "siteBApproach": { "type": "string" },
+              "evidenceA": { "type": "array", "items": { "type": "string" } },
+              "evidenceB": { "type": "array", "items": { "type": "string" } },
+              "interpretation": { "type": "string", "description": "What makes this a genuinely differentiating choice" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
